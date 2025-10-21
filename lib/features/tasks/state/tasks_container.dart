@@ -27,6 +27,18 @@ class _TasksContainerState extends State<TasksContainer> {
   bool _notificationsEnabled = true;
   bool _isDarkTheme = false;
 
+
+
+  // Апдейт фото профиля
+
+  void _updateUserAvatar(String newAvatarUrl) {
+    if (_currentUser != null) {
+      setState(() {
+        _currentUser = _currentUser!.copyWith(avatarUrl: newAvatarUrl);
+      });
+    }
+  }
+
   // Навигационные методы
   void _showAuthScreen() {
     setState(() {
@@ -186,10 +198,13 @@ class _TasksContainerState extends State<TasksContainer> {
             onToggleWatched: _toggleMovieWatched,
             onDeleteMovie: _deleteMovie,
           ),
+
           ProfileScreen(
             user: _currentUser!,
             onLogout: _logout,
+            onUpdateAvatar: _updateUserAvatar, // Добавьте эту строку
           ),
+
           SettingsScreen(
             notificationsEnabled: _notificationsEnabled,
             isDarkTheme: _isDarkTheme,
