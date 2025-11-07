@@ -13,12 +13,12 @@ class _MovieCategoriesScreenState extends State<MovieCategoriesScreen> {
   int _currentPage = 0;
 
   final List<Map<String, dynamic>> categories = const [
-    {'name': 'Боевик', 'icon': Icons.local_fire_department, 'color': Colors.black87},
-    {'name': 'Комедия', 'icon': Icons.sentiment_very_satisfied, 'color': Colors.black87},
-    {'name': 'Драма', 'icon': Icons.theater_comedy, 'color': Colors.black87},
-    {'name': 'Фантастика', 'icon': Icons.rocket_launch, 'color': Colors.black87},
+    {'name': 'Боевик', 'icon': Icons.local_fire_department, 'color': Colors.red},
+    {'name': 'Комедия', 'icon': Icons.sentiment_very_satisfied, 'color': Colors.orange},
+    {'name': 'Драма', 'icon': Icons.theater_comedy, 'color': Colors.purple},
+    {'name': 'Фантастика', 'icon': Icons.rocket_launch, 'color': Colors.blue},
     {'name': 'Ужасы', 'icon': Icons.warning, 'color': Colors.black87},
-    {'name': 'Романтика', 'icon': Icons.favorite, 'color': Colors.black87},
+    {'name': 'Романтика', 'icon': Icons.favorite, 'color': Colors.pink},
   ];
 
   @override
@@ -61,7 +61,6 @@ class _MovieCategoriesScreenState extends State<MovieCategoriesScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Кнопка "Назад" (стрелка влево)
             SizedBox(
               width: 50,
               height: 50,
@@ -77,12 +76,10 @@ class _MovieCategoriesScreenState extends State<MovieCategoriesScreen> {
                 icon: const Icon(Icons.arrow_back),
               ),
             ),
-            // Индикатор текущей страницы
             Text(
               '${_currentPage + 1}/${categories.length}',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            // Кнопка "Далее" (стрелка вправо)
             SizedBox(
               width: 50,
               height: 50,
@@ -107,12 +104,10 @@ class _MovieCategoriesScreenState extends State<MovieCategoriesScreen> {
   Widget _buildCategoryPage(Map<String, dynamic> category, BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
+        Navigator.pushNamed(
           context,
-          MaterialPageRoute(
-            builder: (context) =>
-                CategoryMoviesScreen(categoryName: category['name']),
-          ),
+          '/category_movies',
+          arguments: category['name'],
         );
       },
       child: Container(

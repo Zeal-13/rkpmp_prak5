@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/movie.dart';
-import 'movie_detail_screen.dart';
 import 'movie_categories_screen.dart';
-import 'add_movie_screen.dart';
 
 class MoviesListScreen extends StatelessWidget {
   final List<Movie> movies;
@@ -27,6 +25,7 @@ class MoviesListScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.category),
             onPressed: () {
+              // ВЕРТИКАЛЬНАЯ НАВИГАЦИЯ - модальное окно
               showModalBottomSheet(
                 context: context,
                 builder: (context) => const MovieCategoriesScreen(),
@@ -43,10 +42,7 @@ class MoviesListScreen extends StatelessWidget {
           children: [
             Icon(Icons.movie_outlined, size: 64, color: Colors.grey),
             SizedBox(height: 16),
-            Text(
-              'Нет добавленных фильмов',
-              style: TextStyle(fontSize: 18, color: Colors.grey),
-            ),
+            Text('Нет добавленных фильмов'),
           ],
         ),
       )
@@ -68,39 +64,30 @@ class MoviesListScreen extends StatelessWidget {
               subtitle: Text('${movie.genre} • ${movie.year}'),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
-                // ГОРИЗОНТАЛЬНАЯ НАВИГАЦИЯ - обычный Navigator.push
-                Navigator.push(
+                Navigator.pushNamed(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => MovieDetailScreen(movie: movie),
-                  ),
+                  '/movie_detail',
+                  arguments: movie,
                 );
               },
+
             ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(
+          Navigator.pushNamed(
             context,
-            MaterialPageRoute(
-              builder: (context) => AddMovieScreen(
-                onAddMovie: ({
-                  required String title,
-                  required String description,
-                  required String genre,
-                  required int year,
-                  required double rating,
-                }) {
-                  onAddMovie();
-                },
-              ),
-            ),
+            '/add_movie',
+            arguments: {
+              'onAddMovie': onAddMovie,
+            },
           );
         },
         child: const Icon(Icons.add),
       ),
+
     );
   }
 }

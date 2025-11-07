@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/movie.dart';
-import 'movie_review_screen.dart';
 
 class MovieDetailScreen extends StatelessWidget {
   final Movie movie;
@@ -25,6 +24,7 @@ class MovieDetailScreen extends StatelessWidget {
             Center(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
+
               ),
             ),
             const SizedBox(height: 24),
@@ -54,17 +54,16 @@ class MovieDetailScreen extends StatelessWidget {
               height: 50,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  // ГОРИЗОНТАЛЬНАЯ НАВИГАЦИЯ
-                  Navigator.push(
+                  Navigator.pushNamed(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => MovieReviewScreen(movie: movie),
-                    ),
+                    '/movie_review',
+                    arguments: movie,
                   );
                 },
                 icon: const Icon(Icons.reviews),
                 label: const Text('Посмотреть отзывы'),
               ),
+
             ),
           ],
         ),
