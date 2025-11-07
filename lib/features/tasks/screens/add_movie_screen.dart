@@ -57,9 +57,35 @@ class _AddMovieScreenState extends State<AddMovieScreen> {
         year: int.parse(_yearController.text),
         rating: _rating,
       );
-      Navigator.pop(context);
+
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+          const Scaffold(
+            body: Center(
+              child: Text('Фильм успешно добавлен!'),
+            ),
+          ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(-1.0, 0.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+            var tween = Tween(begin: begin, end: end).chain(
+              CurveTween(curve: curve),
+            );
+            var offsetAnimation = animation.drive(tween);
+            return SlideTransition(
+              position: offsetAnimation,
+              child: child,
+            );
+          },
+        ),
+      );
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {

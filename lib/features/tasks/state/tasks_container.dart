@@ -27,18 +27,6 @@ class _TasksContainerState extends State<TasksContainer> {
   bool _notificationsEnabled = true;
   bool _isDarkTheme = false;
 
-
-
-  // Апдейт фото профиля
-
-  void _updateUserAvatar(String newAvatarUrl) {
-    if (_currentUser != null) {
-      setState(() {
-        _currentUser = _currentUser!.copyWith(avatarUrl: newAvatarUrl);
-      });
-    }
-  }
-
   // Навигационные методы
   void _showAuthScreen() {
     setState(() {
@@ -198,13 +186,10 @@ class _TasksContainerState extends State<TasksContainer> {
             onToggleWatched: _toggleMovieWatched,
             onDeleteMovie: _deleteMovie,
           ),
-
           ProfileScreen(
             user: _currentUser!,
             onLogout: _logout,
-            onUpdateAvatar: _updateUserAvatar, // Добавьте эту строку
           ),
-
           SettingsScreen(
             notificationsEnabled: _notificationsEnabled,
             isDarkTheme: _isDarkTheme,
@@ -237,11 +222,24 @@ class _TasksContainerState extends State<TasksContainer> {
   void _showAddMovieScreen() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => AddMovieScreen(
-          onAddMovie: _addMovie,
-        ),
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            AddMovieScreen(onAddMovie: _addMovie),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(1.0, 0.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOut;
+          var tween = Tween(begin: begin, end: end).chain(
+            CurveTween(curve: curve),
+          );
+          var offsetAnimation = animation.drive(tween);
+          return SlideTransition(
+            position: offsetAnimation,
+            child: child,
+          );
+        },
       ),
     );
   }
+
 }
