@@ -20,7 +20,7 @@ class TasksContainer extends StatefulWidget {
 class _TasksContainerState extends State<TasksContainer> {
   AppScreen _currentScreen = AppScreen.auth;
   User? _currentUser;
-  List<Movie> _movies = [];
+  final List<Movie> _movies = [];
   int _currentTabIndex = 0;
   bool _rememberMe = false;
   bool _acceptTerms = false;

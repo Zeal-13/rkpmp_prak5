@@ -144,7 +144,7 @@ class _AddMovieScreenState extends State<AddMovieScreen> {
 
               // Жанр
               DropdownButtonFormField<String>(
-                value: _selectedGenre,
+                initialValue: _selectedGenre,
                 decoration: const InputDecoration(
                   labelText: 'Жанр',
                   border: OutlineInputBorder(),

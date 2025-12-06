@@ -54,7 +54,6 @@ class MovieDetailScreen extends StatelessWidget {
               height: 50,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  // ГОРИЗОНТАЛЬНАЯ НАВИГАЦИЯ
                   Navigator.push(
                     context,
                     MaterialPageRoute(

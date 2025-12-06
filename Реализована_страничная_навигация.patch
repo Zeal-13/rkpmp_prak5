@@ -1,0 +1,1249 @@
+Subject: [PATCH] Реализована страничная навигация
+---
+Index: android/app/src/main/AndroidManifest.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/android/app/src/main/AndroidManifest.xml b/android/app/src/main/AndroidManifest.xml
+--- a/android/app/src/main/AndroidManifest.xml	(revision a120c705d44f16a27a623070a64afc242a523c3a)
++++ b/android/app/src/main/AndroidManifest.xml	(revision bb2cfe950cf77996aa3e789c105a5689429cc35f)
+@@ -12,8 +12,10 @@
+             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+             android:hardwareAccelerated="true"
+             android:windowSoftInputMode="adjustResize">
+-            <uses-permission android:name="android.permission.INTERNET"/>
+-
++            <!-- Specifies an Android theme to apply to this Activity as soon as
++                 the Android process has started. This theme is visible to the user
++                 while the Flutter UI initializes. After that, this theme continues
++                 to determine the Window background behind the Flutter UI. -->
+             <meta-data
+               android:name="io.flutter.embedding.android.NormalTheme"
+               android:resource="@style/NormalTheme"
+Index: lib/features/tasks/models/user.dart
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/lib/features/tasks/models/user.dart b/lib/features/tasks/models/user.dart
+--- a/lib/features/tasks/models/user.dart	(revision a120c705d44f16a27a623070a64afc242a523c3a)
++++ b/lib/features/tasks/models/user.dart	(revision bb2cfe950cf77996aa3e789c105a5689429cc35f)
+@@ -1,17 +1,14 @@
+-
+ class User {
+   final String id;
+   final String email;
+   final String name;
+   final DateTime createdAt;
+-  final String? avatarUrl; // Добавьте это поле
+ 
+   const User({
+     required this.id,
+     required this.email,
+     required this.name,
+     required this.createdAt,
+-    this.avatarUrl, // Опциональное поле
+   });
+ 
+   User copyWith({
+@@ -19,14 +16,12 @@
+     String? email,
+     String? name,
+     DateTime? createdAt,
+-    String? avatarUrl,
+   }) {
+     return User(
+       id: id ?? this.id,
+       email: email ?? this.email,
+       name: name ?? this.name,
+       createdAt: createdAt ?? this.createdAt,
+-      avatarUrl: avatarUrl ?? this.avatarUrl,
+     );
+   }
+ }
+Index: lib/features/tasks/screens/add_movie_screen.dart
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/lib/features/tasks/screens/add_movie_screen.dart b/lib/features/tasks/screens/add_movie_screen.dart
+--- a/lib/features/tasks/screens/add_movie_screen.dart	(revision a120c705d44f16a27a623070a64afc242a523c3a)
++++ b/lib/features/tasks/screens/add_movie_screen.dart	(revision bb2cfe950cf77996aa3e789c105a5689429cc35f)
+@@ -57,9 +57,35 @@
+         year: int.parse(_yearController.text),
+         rating: _rating,
+       );
+-      Navigator.pop(context);
++
++      Navigator.pushReplacement(
++        context,
++        PageRouteBuilder(
++          pageBuilder: (context, animation, secondaryAnimation) =>
++          const Scaffold(
++            body: Center(
++              child: Text('Фильм успешно добавлен!'),
++            ),
++          ),
++          transitionsBuilder: (context, animation, secondaryAnimation, child) {
++            const begin = Offset(-1.0, 0.0);
++            const end = Offset.zero;
++            const curve = Curves.easeInOut;
++            var tween = Tween(begin: begin, end: end).chain(
++              CurveTween(curve: curve),
++            );
++            var offsetAnimation = animation.drive(tween);
++            return SlideTransition(
++              position: offsetAnimation,
++              child: child,
++            );
++          },
++        ),
++      );
+     }
+   }
++
++
+ 
+   @override
+   Widget build(BuildContext context) {
+Index: lib/features/tasks/screens/category_movies_screen.dart
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/lib/features/tasks/screens/category_movies_screen.dart b/lib/features/tasks/screens/category_movies_screen.dart
+new file mode 100644
+--- /dev/null	(revision bb2cfe950cf77996aa3e789c105a5689429cc35f)
++++ b/lib/features/tasks/screens/category_movies_screen.dart	(revision bb2cfe950cf77996aa3e789c105a5689429cc35f)
+@@ -0,0 +1,40 @@
++import 'package:flutter/material.dart';
++
++class CategoryMoviesScreen extends StatelessWidget {
++  final String categoryName;
++
++  const CategoryMoviesScreen({super.key, required this.categoryName});
++
++  @override
++  Widget build(BuildContext context) {
++    return Scaffold(
++      appBar: AppBar(
++        title: Text('Фильмы: $categoryName'),
++        leading: IconButton(
++          icon: const Icon(Icons.arrow_back),
++          onPressed: () => Navigator.pop(context),
++        ),
++      ),
++      body: ListView.builder(
++        padding: const EdgeInsets.all(16),
++        itemCount: 10,
++        itemBuilder: (context, index) {
++          return Card(
++            margin: const EdgeInsets.only(bottom: 12),
++            child: ListTile(
++              leading: Container(
++                width: 50,
++                height: 75,
++                color: Colors.grey[300],
++                child: const Icon(Icons.movie),
++              ),
++              title: Text('$categoryName фильм ${index + 1}'),
++              subtitle: Text('Год: ${2020 + index}'),
++              trailing: const Text('8.5 ⭐'),
++            ),
++          );
++        },
++      ),
++    );
++  }
++}
+Index: lib/features/tasks/screens/movie_categories_screen.dart
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/lib/features/tasks/screens/movie_categories_screen.dart b/lib/features/tasks/screens/movie_categories_screen.dart
+new file mode 100644
+--- /dev/null	(revision bb2cfe950cf77996aa3e789c105a5689429cc35f)
++++ b/lib/features/tasks/screens/movie_categories_screen.dart	(revision bb2cfe950cf77996aa3e789c105a5689429cc35f)
+@@ -0,0 +1,159 @@
++import 'package:flutter/material.dart';
++import 'category_movies_screen.dart';
++
++class MovieCategoriesScreen extends StatefulWidget {
++  const MovieCategoriesScreen({super.key});
++
++  @override
++  State<MovieCategoriesScreen> createState() => _MovieCategoriesScreenState();
++}
++
++class _MovieCategoriesScreenState extends State<MovieCategoriesScreen> {
++  late PageController _pageController;
++  int _currentPage = 0;
++
++  final List<Map<String, dynamic>> categories = const [
++    {'name': 'Боевик', 'icon': Icons.local_fire_department, 'color': Colors.black87},
++    {'name': 'Комедия', 'icon': Icons.sentiment_very_satisfied, 'color': Colors.black87},
++    {'name': 'Драма', 'icon': Icons.theater_comedy, 'color': Colors.black87},
++    {'name': 'Фантастика', 'icon': Icons.rocket_launch, 'color': Colors.black87},
++    {'name': 'Ужасы', 'icon': Icons.warning, 'color': Colors.black87},
++    {'name': 'Романтика', 'icon': Icons.favorite, 'color': Colors.black87},
++  ];
++
++  @override
++  void initState() {
++    super.initState();
++    _pageController = PageController();
++  }
++
++  @override
++  void dispose() {
++    _pageController.dispose();
++    super.dispose();
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    return Scaffold(
++      appBar: AppBar(
++        title: const Text('Категории фильмов'),
++        leading: IconButton(
++          icon: const Icon(Icons.close),
++          onPressed: () => Navigator.pop(context),
++        ),
++      ),
++      body: PageView.builder(
++        controller: _pageController,
++        onPageChanged: (index) {
++          setState(() {
++            _currentPage = index;
++          });
++        },
++        itemCount: categories.length,
++        itemBuilder: (context, index) {
++          final category = categories[index];
++          return _buildCategoryPage(category, context);
++        },
++      ),
++      bottomNavigationBar: Container(
++        padding: const EdgeInsets.all(16),
++        child: Row(
++          mainAxisAlignment: MainAxisAlignment.spaceBetween,
++          children: [
++            // Кнопка "Назад" (стрелка влево)
++            SizedBox(
++              width: 50,
++              height: 50,
++              child: IconButton(
++                onPressed: _currentPage > 0
++                    ? () {
++                  _pageController.previousPage(
++                    duration: const Duration(milliseconds: 300),
++                    curve: Curves.easeInOut,
++                  );
++                }
++                    : null,
++                icon: const Icon(Icons.arrow_back),
++              ),
++            ),
++            // Индикатор текущей страницы
++            Text(
++              '${_currentPage + 1}/${categories.length}',
++              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
++            ),
++            // Кнопка "Далее" (стрелка вправо)
++            SizedBox(
++              width: 50,
++              height: 50,
++              child: IconButton(
++                onPressed: _currentPage < categories.length - 1
++                    ? () {
++                  _pageController.nextPage(
++                    duration: const Duration(milliseconds: 300),
++                    curve: Curves.easeInOut,
++                  );
++                }
++                    : null,
++                icon: const Icon(Icons.arrow_forward),
++              ),
++            ),
++          ],
++        ),
++      ),
++    );
++  }
++
++  Widget _buildCategoryPage(Map<String, dynamic> category, BuildContext context) {
++    return GestureDetector(
++      onTap: () {
++        Navigator.push(
++          context,
++          MaterialPageRoute(
++            builder: (context) =>
++                CategoryMoviesScreen(categoryName: category['name']),
++          ),
++        );
++      },
++      child: Container(
++        color: category['color'],
++        child: Column(
++          mainAxisAlignment: MainAxisAlignment.center,
++          children: [
++            Icon(
++              category['icon'],
++              size: 120,
++              color: Colors.white,
++            ),
++            const SizedBox(height: 24),
++            Text(
++              category['name'],
++              style: const TextStyle(
++                fontSize: 48,
++                fontWeight: FontWeight.bold,
++                color: Colors.white,
++              ),
++            ),
++            const SizedBox(height: 16),
++            const Text(
++              'Нажмите, чтобы открыть',
++              style: TextStyle(
++                fontSize: 16,
++                color: Colors.white70,
++              ),
++            ),
++            const SizedBox(height: 32),
++            const Text(
++              '← Свайп влево/вправо →',
++              style: TextStyle(
++                fontSize: 14,
++                color: Colors.white70,
++                fontStyle: FontStyle.italic,
++              ),
++            ),
++          ],
++        ),
++      ),
++    );
++  }
++}
+Index: lib/features/tasks/screens/movie_detail_screen.dart
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/lib/features/tasks/screens/movie_detail_screen.dart b/lib/features/tasks/screens/movie_detail_screen.dart
+new file mode 100644
+--- /dev/null	(revision bb2cfe950cf77996aa3e789c105a5689429cc35f)
++++ b/lib/features/tasks/screens/movie_detail_screen.dart	(revision bb2cfe950cf77996aa3e789c105a5689429cc35f)
+@@ -0,0 +1,74 @@
++import 'package:flutter/material.dart';
++import '../models/movie.dart';
++import 'movie_review_screen.dart';
++
++class MovieDetailScreen extends StatelessWidget {
++  final Movie movie;
++
++  const MovieDetailScreen({super.key, required this.movie});
++
++  @override
++  Widget build(BuildContext context) {
++    return Scaffold(
++      appBar: AppBar(
++        title: Text(movie.title),
++        leading: IconButton(
++          icon: const Icon(Icons.arrow_back),
++          onPressed: () => Navigator.pop(context),
++        ),
++      ),
++      body: SingleChildScrollView(
++        padding: const EdgeInsets.all(16),
++        child: Column(
++          crossAxisAlignment: CrossAxisAlignment.start,
++          children: [
++            Center(
++              child: ClipRRect(
++                borderRadius: BorderRadius.circular(12),
++              ),
++            ),
++            const SizedBox(height: 24),
++            Text(
++              movie.title,
++              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
++            ),
++            const SizedBox(height: 8),
++            Row(
++              children: [
++                Chip(label: Text(movie.genre)),
++                const SizedBox(width: 8),
++                Text('${movie.year}'),
++              ],
++            ),
++            const SizedBox(height: 16),
++            Row(
++              children: [
++                const Icon(Icons.star, color: Colors.amber),
++                const SizedBox(width: 8),
++                Text('${movie.rating}/10'),
++              ],
++            ),
++            const SizedBox(height: 24),
++            SizedBox(
++              width: double.infinity,
++              height: 50,
++              child: ElevatedButton.icon(
++                onPressed: () {
++                  // ГОРИЗОНТАЛЬНАЯ НАВИГАЦИЯ
++                  Navigator.push(
++                    context,
++                    MaterialPageRoute(
++                      builder: (context) => MovieReviewScreen(movie: movie),
++                    ),
++                  );
++                },
++                icon: const Icon(Icons.reviews),
++                label: const Text('Посмотреть отзывы'),
++              ),
++            ),
++          ],
++        ),
++      ),
++    );
++  }
++}
+Index: lib/features/tasks/screens/movie_review_screen.dart
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/lib/features/tasks/screens/movie_review_screen.dart b/lib/features/tasks/screens/movie_review_screen.dart
+new file mode 100644
+--- /dev/null	(revision bb2cfe950cf77996aa3e789c105a5689429cc35f)
++++ b/lib/features/tasks/screens/movie_review_screen.dart	(revision bb2cfe950cf77996aa3e789c105a5689429cc35f)
+@@ -0,0 +1,62 @@
++import 'package:flutter/material.dart';
++import '../models/movie.dart';
++
++class MovieReviewScreen extends StatelessWidget {
++  final Movie movie;
++
++  const MovieReviewScreen({super.key, required this.movie});
++
++  @override
++  Widget build(BuildContext context) {
++    return Scaffold(
++      appBar: AppBar(
++        title: Text('Отзывы: ${movie.title}'),
++        leading: IconButton(
++          icon: const Icon(Icons.arrow_back),
++          onPressed: () => Navigator.pop(context),
++        ),
++      ),
++      body: ListView.builder(
++        padding: const EdgeInsets.all(16),
++        itemCount: 5,
++        itemBuilder: (context, index) {
++          return Card(
++            margin: const EdgeInsets.only(bottom: 16),
++            child: Padding(
++              padding: const EdgeInsets.all(16),
++              child: Column(
++                crossAxisAlignment: CrossAxisAlignment.start,
++                children: [
++                  Row(
++                    children: [
++                      CircleAvatar(child: Text('U${index + 1}')),
++                      const SizedBox(width: 12),
++                      Column(
++                        crossAxisAlignment: CrossAxisAlignment.start,
++                        children: [
++                          Text('Пользователь ${index + 1}',
++                              style: const TextStyle(fontWeight: FontWeight.bold)),
++                          Row(
++                            children: List.generate(
++                              5,
++                                  (i) => Icon(Icons.star,
++                                  size: 16,
++                                  color:
++                                  i < (4 - index % 2) ? Colors.amber : Colors.grey),
++                            ),
++                          ),
++                        ],
++                      ),
++                    ],
++                  ),
++                  const SizedBox(height: 12),
++                  const Text('Отличный фильм! Рекомендую всем к просмотру.'),
++                ],
++              ),
++            ),
++          );
++        },
++      ),
++    );
++  }
++}
+Index: lib/features/tasks/screens/movies_list_screen.dart
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/lib/features/tasks/screens/movies_list_screen.dart b/lib/features/tasks/screens/movies_list_screen.dart
+--- a/lib/features/tasks/screens/movies_list_screen.dart	(revision a120c705d44f16a27a623070a64afc242a523c3a)
++++ b/lib/features/tasks/screens/movies_list_screen.dart	(revision bb2cfe950cf77996aa3e789c105a5689429cc35f)
+@@ -1,6 +1,8 @@
+ import 'package:flutter/material.dart';
+ import '../models/movie.dart';
+-import '../widgets/movies_list_view.dart';
++import 'movie_detail_screen.dart';
++import 'movie_categories_screen.dart';
++import 'add_movie_screen.dart';
+ 
+ class MoviesListScreen extends StatelessWidget {
+   final List<Movie> movies;
+@@ -21,43 +23,82 @@
+     return Scaffold(
+       appBar: AppBar(
+         title: const Text('Мои фильмы'),
++        actions: [
++          IconButton(
++            icon: const Icon(Icons.category),
++            onPressed: () {
++              showModalBottomSheet(
++                context: context,
++                builder: (context) => const MovieCategoriesScreen(),
++                isScrollControlled: true,
++              );
++            },
++          ),
++        ],
+       ),
+       body: movies.isEmpty
+           ? const Center(
+         child: Column(
+           mainAxisAlignment: MainAxisAlignment.center,
+           children: [
+-            Icon(
+-              Icons.movie_outlined,
+-              size: 64,
+-              color: Colors.grey,
+-            ),
++            Icon(Icons.movie_outlined, size: 64, color: Colors.grey),
+             SizedBox(height: 16),
+             Text(
+               'Нет добавленных фильмов',
+-              style: TextStyle(
+-                fontSize: 18,
+-                color: Colors.grey,
+-              ),
+-            ),
+-            SizedBox(height: 8),
+-            Text(
+-              'Добавьте свой первый фильм!',
+-              style: TextStyle(
+-                fontSize: 14,
+-                color: Colors.grey,
++              style: TextStyle(fontSize: 18, color: Colors.grey),
++            ),
++          ],
++        ),
++      )
++          : ListView.builder(
++        itemCount: movies.length,
++        itemBuilder: (context, index) {
++          final movie = movies[index];
++          return Card(
++            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
++            child: ListTile(
++              leading: CircleAvatar(
++                backgroundColor: movie.isWatched ? Colors.green : Colors.grey,
++                child: Icon(
++                  movie.isWatched ? Icons.check : Icons.movie,
++                  color: Colors.white,
++                ),
+               ),
+-            ),
+-          ],
+-        ),
+-      )
+-          : MoviesListView(
+-        movies: movies,
+-        onToggleWatched: onToggleWatched,
+-        onDeleteMovie: onDeleteMovie,
++              title: Text(movie.title),
++              subtitle: Text('${movie.genre} • ${movie.year}'),
++              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
++              onTap: () {
++                // ГОРИЗОНТАЛЬНАЯ НАВИГАЦИЯ - обычный Navigator.push
++                Navigator.push(
++                  context,
++                  MaterialPageRoute(
++                    builder: (context) => MovieDetailScreen(movie: movie),
++                  ),
++                );
++              },
++            ),
++          );
++        },
+       ),
+       floatingActionButton: FloatingActionButton(
+-        onPressed: onAddMovie,
++        onPressed: () {
++          Navigator.push(
++            context,
++            MaterialPageRoute(
++              builder: (context) => AddMovieScreen(
++                onAddMovie: ({
++                  required String title,
++                  required String description,
++                  required String genre,
++                  required int year,
++                  required double rating,
++                }) {
++                  onAddMovie();
++                },
++              ),
++            ),
++          );
++        },
+         child: const Icon(Icons.add),
+       ),
+     );
+Index: lib/features/tasks/screens/profile_screen.dart
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/lib/features/tasks/screens/profile_screen.dart b/lib/features/tasks/screens/profile_screen.dart
+--- a/lib/features/tasks/screens/profile_screen.dart	(revision a120c705d44f16a27a623070a64afc242a523c3a)
++++ b/lib/features/tasks/screens/profile_screen.dart	(revision bb2cfe950cf77996aa3e789c105a5689429cc35f)
+@@ -1,20 +1,14 @@
+-// lib/features/tasks/screens/profile_screen.dart
+ import 'package:flutter/material.dart';
+-import 'package:cached_network_image/cached_network_image.dart';
+ import '../models/user.dart';
+ 
+-
+-
+ class ProfileScreen extends StatelessWidget {
+   final User user;
+   final VoidCallback onLogout;
+-  final Function(String) onUpdateAvatar;
+ 
+   const ProfileScreen({
+     super.key,
+     required this.user,
+     required this.onLogout,
+-    required this.onUpdateAvatar,
+   });
+ 
+   @override
+@@ -22,66 +16,19 @@
+     return Scaffold(
+       appBar: AppBar(
+         title: const Text('Профиль'),
+-        actions: [
+-          IconButton(
+-            icon: const Icon(Icons.edit),
+-            onPressed: () {
+-              _showEditProfileDialog(context);
+-            },
+-          ),
+-        ],
+       ),
+       body: Padding(
+         padding: const EdgeInsets.all(16.0),
+         child: Column(
+           children: [
+-            // Аватар с возможностью изменения
+-            GestureDetector(
+-              onTap: () => _showChangeAvatarDialog(context),
+-              child: Stack(
+-                children: [
+-                  CircleAvatar(
+-                    radius: 50,
+-                    backgroundColor: Colors.indigo,
+-                    child: user.avatarUrl != null
+-                        ? ClipOval(
+-                      child: CachedNetworkImage(
+-                        imageUrl: user.avatarUrl!,
+-                        width: 100,
+-                        height: 100,
+-                        fit: BoxFit.cover,
+-                        placeholder: (context, url) => const CircularProgressIndicator(),
+-                        errorWidget: (context, url, error) => const Icon(
+-                          Icons.person,
+-                          size: 60,
+-                          color: Colors.white,
+-                        ),
+-                      ),
+-                    )
+-                        : const Icon(
+-                      Icons.person,
+-                      size: 60,
+-                      color: Colors.white,
+-                    ),
+-                  ),
+-                  Positioned(
+-                    bottom: 0,
+-                    right: 0,
+-                    child: Container(
+-                      padding: const EdgeInsets.all(4),
+-                      decoration: BoxDecoration(
+-                        color: Colors.indigo,
+-                        shape: BoxShape.circle,
+-                        border: Border.all(color: Colors.white, width: 2),
+-                      ),
+-                      child: const Icon(
+-                        Icons.camera_alt,
+-                        size: 20,
+-                        color: Colors.white,
+-                      ),
+-                    ),
+-                  ),
+-                ],
++            // Аватар
++            const CircleAvatar(
++              radius: 50,
++              backgroundColor: Colors.indigo,
++              child: Icon(
++                Icons.person,
++                size: 60,
++                color: Colors.white,
+               ),
+             ),
+             const SizedBox(height: 24),
+@@ -194,76 +141,6 @@
+     return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+   }
+ 
+-  void _showChangeAvatarDialog(BuildContext context) {
+-    final TextEditingController urlController = TextEditingController(
+-      text: user.avatarUrl ?? '',
+-    );
+-
+-    showDialog(
+-      context: context,
+-      builder: (BuildContext context) {
+-        return AlertDialog(
+-          title: const Text('Изменить фото профиля'),
+-          content: Column(
+-            mainAxisSize: MainAxisSize.min,
+-            children: [
+-              const Text('Введите URL изображения:'),
+-              const SizedBox(height: 12),
+-              TextField(
+-                controller: urlController,
+-                decoration: const InputDecoration(
+-                  hintText: 'https://example.com/avatar.jpg',
+-                  border: OutlineInputBorder(),
+-                ),
+-              ),
+-
+-            ],
+-          ),
+-          actions: [
+-            TextButton(
+-              onPressed: () {
+-                Navigator.of(context).pop();
+-              },
+-              child: const Text('Отмена'),
+-            ),
+-            ElevatedButton(
+-              onPressed: () {
+-                final url = urlController.text.trim();
+-                if (url.isNotEmpty) {
+-                  onUpdateAvatar(url);
+-                  Navigator.of(context).pop();
+-                }
+-              },
+-              child: const Text('Сохранить'),
+-            ),
+-          ],
+-        );
+-      },
+-    );
+-  }
+-
+-  Widget _buildExampleUrl(
+-      BuildContext context,
+-      String url,
+-      TextEditingController controller,
+-      ) {
+-    return TextButton(
+-      onPressed: () {
+-        controller.text = url;
+-      },
+-      child: Text(
+-        url,
+-        style: const TextStyle(fontSize: 10),
+-        overflow: TextOverflow.ellipsis,
+-      ),
+-    );
+-  }
+-
+-  void _showEditProfileDialog(BuildContext context) {
+-    // Реализация редактирования профиля (имя, email)
+-    // Код был предоставлен ранее
+-  }
+-
+   void _showLogoutDialog(BuildContext context) {
+     showDialog(
+       context: context,
+Index: lib/features/tasks/state/tasks_container.dart
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/lib/features/tasks/state/tasks_container.dart b/lib/features/tasks/state/tasks_container.dart
+--- a/lib/features/tasks/state/tasks_container.dart	(revision a120c705d44f16a27a623070a64afc242a523c3a)
++++ b/lib/features/tasks/state/tasks_container.dart	(revision bb2cfe950cf77996aa3e789c105a5689429cc35f)
+@@ -27,18 +27,6 @@
+   bool _notificationsEnabled = true;
+   bool _isDarkTheme = false;
+ 
+-
+-
+-  // Апдейт фото профиля
+-
+-  void _updateUserAvatar(String newAvatarUrl) {
+-    if (_currentUser != null) {
+-      setState(() {
+-        _currentUser = _currentUser!.copyWith(avatarUrl: newAvatarUrl);
+-      });
+-    }
+-  }
+-
+   // Навигационные методы
+   void _showAuthScreen() {
+     setState(() {
+@@ -198,13 +186,10 @@
+             onToggleWatched: _toggleMovieWatched,
+             onDeleteMovie: _deleteMovie,
+           ),
+-
+           ProfileScreen(
+             user: _currentUser!,
+             onLogout: _logout,
+-            onUpdateAvatar: _updateUserAvatar, // Добавьте эту строку
+           ),
+-
+           SettingsScreen(
+             notificationsEnabled: _notificationsEnabled,
+             isDarkTheme: _isDarkTheme,
+@@ -237,11 +222,24 @@
+   void _showAddMovieScreen() {
+     Navigator.push(
+       context,
+-      MaterialPageRoute(
+-        builder: (context) => AddMovieScreen(
+-          onAddMovie: _addMovie,
+-        ),
++      PageRouteBuilder(
++        pageBuilder: (context, animation, secondaryAnimation) =>
++            AddMovieScreen(onAddMovie: _addMovie),
++        transitionsBuilder: (context, animation, secondaryAnimation, child) {
++          const begin = Offset(1.0, 0.0);
++          const end = Offset.zero;
++          const curve = Curves.easeInOut;
++          var tween = Tween(begin: begin, end: end).chain(
++            CurveTween(curve: curve),
++          );
++          var offsetAnimation = animation.drive(tween);
++          return SlideTransition(
++            position: offsetAnimation,
++            child: child,
++          );
++        },
+       ),
+     );
+   }
++
+ }
+Index: macos/Flutter/GeneratedPluginRegistrant.swift
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/macos/Flutter/GeneratedPluginRegistrant.swift b/macos/Flutter/GeneratedPluginRegistrant.swift
+--- a/macos/Flutter/GeneratedPluginRegistrant.swift	(revision a120c705d44f16a27a623070a64afc242a523c3a)
++++ b/macos/Flutter/GeneratedPluginRegistrant.swift	(revision bb2cfe950cf77996aa3e789c105a5689429cc35f)
+@@ -5,10 +5,6 @@
+ import FlutterMacOS
+ import Foundation
+ 
+-import path_provider_foundation
+-import sqflite_darwin
+ 
+ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
+-  PathProviderPlugin.register(with: registry.registrar(forPlugin: "PathProviderPlugin"))
+-  SqflitePlugin.register(with: registry.registrar(forPlugin: "SqflitePlugin"))
+ }
+Index: pubspec.lock
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/pubspec.lock b/pubspec.lock
+--- a/pubspec.lock	(revision a120c705d44f16a27a623070a64afc242a523c3a)
++++ b/pubspec.lock	(revision bb2cfe950cf77996aa3e789c105a5689429cc35f)
+@@ -17,30 +17,6 @@
+       url: "https://pub.dev"
+     source: hosted
+     version: "2.1.2"
+-  cached_network_image:
+-    dependency: "direct main"
+-    description:
+-      name: cached_network_image
+-      sha256: "7c1183e361e5c8b0a0f21a28401eecdbde252441106a9816400dd4c2b2424916"
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "3.4.1"
+-  cached_network_image_platform_interface:
+-    dependency: transitive
+-    description:
+-      name: cached_network_image_platform_interface
+-      sha256: "35814b016e37fbdc91f7ae18c8caf49ba5c88501813f73ce8a07027a395e2829"
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "4.1.1"
+-  cached_network_image_web:
+-    dependency: transitive
+-    description:
+-      name: cached_network_image_web
+-      sha256: "980842f4e8e2535b8dbd3d5ca0b1f0ba66bf61d14cc3a17a9b4788a3685ba062"
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "1.3.1"
+   characters:
+     dependency: transitive
+     description:
+@@ -65,14 +41,6 @@
+       url: "https://pub.dev"
+     source: hosted
+     version: "1.19.1"
+-  crypto:
+-    dependency: transitive
+-    description:
+-      name: crypto
+-      sha256: "1e445881f28f22d6140f181e07737b22f1e099a5e1ff94b0af2f9e4a463f4855"
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "3.0.6"
+   cupertino_icons:
+     dependency: "direct main"
+     description:
+@@ -89,43 +57,11 @@
+       url: "https://pub.dev"
+     source: hosted
+     version: "1.3.3"
+-  ffi:
+-    dependency: transitive
+-    description:
+-      name: ffi
+-      sha256: "289279317b4b16eb2bb7e271abccd4bf84ec9bdcbe999e278a94b804f5630418"
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "2.1.4"
+-  file:
+-    dependency: transitive
+-    description:
+-      name: file
+-      sha256: a3b4f84adafef897088c160faf7dfffb7696046cb13ae90b508c2cbc95d3b8d4
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "7.0.1"
+-  fixnum:
+-    dependency: transitive
+-    description:
+-      name: fixnum
+-      sha256: b6dc7065e46c974bc7c5f143080a6764ec7a4be6da1285ececdc37be96de53be
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "1.1.1"
+   flutter:
+     dependency: "direct main"
+     description: flutter
+     source: sdk
+     version: "0.0.0"
+-  flutter_cache_manager:
+-    dependency: transitive
+-    description:
+-      name: flutter_cache_manager
+-      sha256: "400b6592f16a4409a7f2bb929a9a7e38c72cceb8ffb99ee57bbf2cb2cecf8386"
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "3.4.1"
+   flutter_lints:
+     dependency: "direct dev"
+     description:
+@@ -139,22 +75,6 @@
+     description: flutter
+     source: sdk
+     version: "0.0.0"
+-  http:
+-    dependency: transitive
+-    description:
+-      name: http
+-      sha256: bb2ce4590bc2667c96f318d68cac1b5a7987ec819351d32b1c987239a815e007
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "1.5.0"
+-  http_parser:
+-    dependency: transitive
+-    description:
+-      name: http_parser
+-      sha256: "178d74305e7866013777bab2c3d8726205dc5a4dd935297175b19a23a2e66571"
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "4.1.2"
+   leak_tracker:
+     dependency: transitive
+     description:
+@@ -211,14 +131,6 @@
+       url: "https://pub.dev"
+     source: hosted
+     version: "1.16.0"
+-  octo_image:
+-    dependency: transitive
+-    description:
+-      name: octo_image
+-      sha256: "34faa6639a78c7e3cbe79be6f9f96535867e879748ade7d17c9b1ae7536293bd"
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "2.1.0"
+   path:
+     dependency: transitive
+     description:
+@@ -227,78 +139,6 @@
+       url: "https://pub.dev"
+     source: hosted
+     version: "1.9.1"
+-  path_provider:
+-    dependency: transitive
+-    description:
+-      name: path_provider
+-      sha256: "50c5dd5b6e1aaf6fb3a78b33f6aa3afca52bf903a8a5298f53101fdaee55bbcd"
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "2.1.5"
+-  path_provider_android:
+-    dependency: transitive
+-    description:
+-      name: path_provider_android
+-      sha256: e122c5ea805bb6773bb12ce667611265980940145be920cd09a4b0ec0285cb16
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "2.2.20"
+-  path_provider_foundation:
+-    dependency: transitive
+-    description:
+-      name: path_provider_foundation
+-      sha256: efaec349ddfc181528345c56f8eda9d6cccd71c177511b132c6a0ddaefaa2738
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "2.4.3"
+-  path_provider_linux:
+-    dependency: transitive
+-    description:
+-      name: path_provider_linux
+-      sha256: f7a1fe3a634fe7734c8d3f2766ad746ae2a2884abe22e241a8b301bf5cac3279
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "2.2.1"
+-  path_provider_platform_interface:
+-    dependency: transitive
+-    description:
+-      name: path_provider_platform_interface
+-      sha256: "88f5779f72ba699763fa3a3b06aa4bf6de76c8e5de842cf6f29e2e06476c2334"
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "2.1.2"
+-  path_provider_windows:
+-    dependency: transitive
+-    description:
+-      name: path_provider_windows
+-      sha256: bd6f00dbd873bfb70d0761682da2b3a2c2fccc2b9e84c495821639601d81afe7
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "2.3.0"
+-  platform:
+-    dependency: transitive
+-    description:
+-      name: platform
+-      sha256: "5d6b1b0036a5f331ebc77c850ebc8506cbc1e9416c27e59b439f917a902a4984"
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "3.1.6"
+-  plugin_platform_interface:
+-    dependency: transitive
+-    description:
+-      name: plugin_platform_interface
+-      sha256: "4820fbfdb9478b1ebae27888254d445073732dae3d6ea81f0b7e06d5dedc3f02"
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "2.1.8"
+-  rxdart:
+-    dependency: transitive
+-    description:
+-      name: rxdart
+-      sha256: "5c3004a4a8dbb94bd4bf5412a4def4acdaa12e12f269737a5751369e12d1a962"
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "0.28.0"
+   sky_engine:
+     dependency: transitive
+     description: flutter
+@@ -312,54 +152,6 @@
+       url: "https://pub.dev"
+     source: hosted
+     version: "1.10.1"
+-  sprintf:
+-    dependency: transitive
+-    description:
+-      name: sprintf
+-      sha256: "1fc9ffe69d4df602376b52949af107d8f5703b77cda567c4d7d86a0693120f23"
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "7.0.0"
+-  sqflite:
+-    dependency: transitive
+-    description:
+-      name: sqflite
+-      sha256: e2297b1da52f127bc7a3da11439985d9b536f75070f3325e62ada69a5c585d03
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "2.4.2"
+-  sqflite_android:
+-    dependency: transitive
+-    description:
+-      name: sqflite_android
+-      sha256: ecd684501ebc2ae9a83536e8b15731642b9570dc8623e0073d227d0ee2bfea88
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "2.4.2+2"
+-  sqflite_common:
+-    dependency: transitive
+-    description:
+-      name: sqflite_common
+-      sha256: "6ef422a4525ecc601db6c0a2233ff448c731307906e92cabc9ba292afaae16a6"
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "2.5.6"
+-  sqflite_darwin:
+-    dependency: transitive
+-    description:
+-      name: sqflite_darwin
+-      sha256: "279832e5cde3fe99e8571879498c9211f3ca6391b0d818df4e17d9fff5c6ccb3"
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "2.4.2"
+-  sqflite_platform_interface:
+-    dependency: transitive
+-    description:
+-      name: sqflite_platform_interface
+-      sha256: "8dd4515c7bdcae0a785b0062859336de775e8c65db81ae33dd5445f35be61920"
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "2.4.0"
+   stack_trace:
+     dependency: transitive
+     description:
+@@ -384,14 +176,6 @@
+       url: "https://pub.dev"
+     source: hosted
+     version: "1.4.1"
+-  synchronized:
+-    dependency: transitive
+-    description:
+-      name: synchronized
+-      sha256: c254ade258ec8282947a0acbbc90b9575b4f19673533ee46f2f6e9b3aeefd7c0
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "3.4.0"
+   term_glyph:
+     dependency: transitive
+     description:
+@@ -408,22 +192,6 @@
+       url: "https://pub.dev"
+     source: hosted
+     version: "0.7.6"
+-  typed_data:
+-    dependency: transitive
+-    description:
+-      name: typed_data
+-      sha256: f9049c039ebfeb4cf7a7104a675823cd72dba8297f264b6637062516699fa006
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "1.4.0"
+-  uuid:
+-    dependency: transitive
+-    description:
+-      name: uuid
+-      sha256: a5be9ef6618a7ac1e964353ef476418026db906c4facdedaa299b7a2e71690ff
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "4.5.1"
+   vector_math:
+     dependency: transitive
+     description:
+@@ -440,22 +208,6 @@
+       url: "https://pub.dev"
+     source: hosted
+     version: "15.0.2"
+-  web:
+-    dependency: transitive
+-    description:
+-      name: web
+-      sha256: "868d88a33d8a87b18ffc05f9f030ba328ffefba92d6c127917a2ba740f9cfe4a"
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "1.1.1"
+-  xdg_directories:
+-    dependency: transitive
+-    description:
+-      name: xdg_directories
+-      sha256: "7a3f37b05d989967cdddcbb571f1ea834867ae2faa29725fd085180e0883aa15"
+-      url: "https://pub.dev"
+-    source: hosted
+-    version: "1.1.0"
+ sdks:
+   dart: ">=3.9.2 <4.0.0"
+-  flutter: ">=3.35.0"
++  flutter: ">=3.18.0-18.0.pre.54"
+Index: pubspec.yaml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/pubspec.yaml b/pubspec.yaml
+--- a/pubspec.yaml	(revision a120c705d44f16a27a623070a64afc242a523c3a)
++++ b/pubspec.yaml	(revision bb2cfe950cf77996aa3e789c105a5689429cc35f)
+@@ -21,7 +21,6 @@
+ environment:
+   sdk: ^3.9.2
+ 
+-
+ # Dependencies specify other packages that your package needs in order to work.
+ # To automatically upgrade your package dependencies to the latest versions
+ # consider running `flutter pub upgrade --major-versions`. Alternatively,
+@@ -31,20 +30,10 @@
+ dependencies:
+   flutter:
+     sdk: flutter
+-  cached_network_image: ^3.3.0
+-
+ 
+   # The following adds the Cupertino Icons font to your application.
+   # Use with the CupertinoIcons class for iOS style icons.
+   cupertino_icons: ^1.0.8
+-  flutter_hooks:
+-    git:
+-      url: https://github.com/rrousselGit/flutter_hooks.git
+-      ref: master
+-
+-      intl:
+-        path: ./local_packages/intl/intl-master
+-
+ 
+ dev_dependencies:
+   flutter_test:
