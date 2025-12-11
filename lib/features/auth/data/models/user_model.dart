@@ -1,7 +1,6 @@
 import '../../domain/entities/user_entity.dart';
 
-/// Data model for User
-/// Extends domain entity with serialization capabilities
+/// модель данных для юзера
 class UserModel extends UserEntity {
   const UserModel({
     required super.id,

@@ -22,8 +22,6 @@ class _TasksContainerState extends State<TasksContainer> {
   User? _currentUser;
   final List<Movie> _movies = [];
   int _currentTabIndex = 0;
-  bool _rememberMe = false;
-  bool _acceptTerms = false;
   bool _notificationsEnabled = true;
   bool _isDarkTheme = false;
 
@@ -40,12 +38,6 @@ class _TasksContainerState extends State<TasksContainer> {
     });
   }
 
-  void _showMainScreen() {
-    setState(() {
-      _currentScreen = AppScreen.main;
-    });
-  }
-
   // Методы аутентификации
   void _login(String email, String password, bool rememberMe) {
     // Простая имитация логики входа
@@ -57,7 +49,6 @@ class _TasksContainerState extends State<TasksContainer> {
           name: email.split('@')[0],
           createdAt: DateTime.now(),
         );
-        _rememberMe = rememberMe;
         _currentScreen = AppScreen.main;
       });
     }
@@ -73,7 +64,6 @@ class _TasksContainerState extends State<TasksContainer> {
           name: name,
           createdAt: DateTime.now(),
         );
-        _acceptTerms = acceptTerms;
         _currentScreen = AppScreen.main;
       });
     }

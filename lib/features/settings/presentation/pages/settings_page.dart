@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/settings_provider.dart';
+import '../../../network/presentation/pages/network_requests_page.dart';
 
 /// Settings page
 class SettingsPage extends ConsumerWidget {
@@ -93,6 +94,21 @@ class SettingsPage extends ConsumerWidget {
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
                     // TODO: Navigate to terms
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: const Text('Сетевые запросы'),
+                  subtitle: const Text('Тестирование всех API запросов'),
+                  leading: const Icon(Icons.cloud),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const NetworkRequestsPage(),
+                      ),
+                    );
                   },
                 ),
                 const Divider(height: 1),

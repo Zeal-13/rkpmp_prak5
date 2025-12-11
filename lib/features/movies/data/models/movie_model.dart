@@ -1,7 +1,6 @@
 import '../../domain/entities/movie_entity.dart';
 
-/// Data model for Movie
-/// Extends domain entity with serialization capabilities
+/// модель данных
 class MovieModel extends MovieEntity {
   const MovieModel({
     required super.id,
@@ -14,7 +13,7 @@ class MovieModel extends MovieEntity {
     required super.createdAt,
   });
 
-  /// Create MovieModel from JSON
+  /// MovieModel из JSON
   factory MovieModel.fromJson(Map<String, dynamic> json) {
     return MovieModel(
       id: json['id'] as String,

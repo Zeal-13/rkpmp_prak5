@@ -117,7 +117,7 @@ class _AddMoviePageState extends ConsumerState<AddMoviePage> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _selectedGenre,
+                initialValue: _selectedGenre,
                 decoration: const InputDecoration(
                   labelText: 'Жанр',
                   border: OutlineInputBorder(),

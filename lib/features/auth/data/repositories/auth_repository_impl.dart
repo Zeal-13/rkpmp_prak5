@@ -1,28 +1,30 @@
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_local_data_source.dart';
+import '../datasources/auth_remote_data_source.dart';
 import '../models/user_model.dart';
 
-/// Implementation of AuthRepository
-/// Bridges domain layer with data layer
 class AuthRepositoryImpl implements AuthRepository {
   final AuthLocalDataSource localDataSource;
+  final AuthRemoteDataSource remoteDataSource;
 
-  AuthRepositoryImpl(this.localDataSource);
+  AuthRepositoryImpl(this.localDataSource, this.remoteDataSource);
 
   @override
   Future<UserEntity> login(String email, String password) async {
-    // Simulate login logic (in real app, this would call an API)
-    // For now, just create a user from email
-    final user = UserModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      email: email,
-      name: email.split('@')[0],
-      createdAt: DateTime.now(),
-    );
+    try {
+      // Выполняем сетевой запрос к ReqRes API
+      final user = await remoteDataSource.login(
+        email: email,
+        password: password,
+      );
 
-    await localDataSource.saveUser(user);
-    return user;
+      // Сохраняем пользователя локально после успешного входа
+      await localDataSource.saveUser(user);
+      return user;
+    } catch (e) {
+      throw Exception('Ошибка при входе: $e');
+    }
   }
 
   @override
@@ -31,16 +33,22 @@ class AuthRepositoryImpl implements AuthRepository {
     required String email,
     required String password,
   }) async {
-    // Simulate registration logic (in real app, this would call an API)
-    final user = UserModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      email: email,
-      name: name,
-      createdAt: DateTime.now(),
-    );
+    try {
+      // Регистрация выполняется локально без API запроса
+      // Создаем пользователя локально
+      final user = UserModel(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        email: email,
+        name: name,
+        createdAt: DateTime.now(),
+      );
 
-    await localDataSource.saveUser(user);
-    return user;
+      // Сохраняем пользователя локально
+      await localDataSource.saveUser(user);
+      return user;
+    } catch (e) {
+      throw Exception('Ошибка при регистрации: $e');
+    }
   }
 
   @override
